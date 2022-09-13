@@ -1,4 +1,3 @@
 prog:
-	g++ -g -Wall -pedantic -o main main.cpp
-send:
-	g++ -g -Wall -pedantic -o sendmain send_main.cpp
+	g++-11 -std=c++20 -g -Wall -pedantic -o main main.cpp
+github:
