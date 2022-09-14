@@ -32,7 +32,7 @@ class AKTry {
         void find_all_entries( std::vector< std::vector< AKTry::Entry > >& );
         void forward( AKTNode*& cur_state, unsigned cur_word, Pattern& pattern );
         AKTNode* start();
-        void other_solution( AKTNode*&, Pattern& );
+        void other_solution( Pattern& );
         bool only_jokers();
     private:
         void add( AKTNode* &cur_node, unsigned word, unsigned length );
@@ -199,7 +199,7 @@ void AKTry::forward( AKTNode*& cur_state, unsigned cur_word, Pattern& pattern ) 
         }
     }
 }
-void AKTry::other_solution( AKTNode*& cur_state, Pattern& pattern ) {
+void AKTry::other_solution( Pattern& pattern ) {
     if( pattern.cur_solution->exit_link != nullptr ) {
         pattern.cur_solution = pattern.cur_solution->exit_link;
         pattern.found = true;
@@ -219,7 +219,7 @@ int main() {
     AKTry tree( pattern_str );
     std::vector< std::deque< AKTry::Entry >/* std::vector< AKTry::Entry > */ > entries( tree.patterns_count );
     // can be multiple words in line
-    std::vector< AKTry::Entry > line_positions( 1, AKTry::Entry( 0, 0 ) );
+    std::deque< AKTry::Entry > line_positions( 1, AKTry::Entry( 0, 0 ) );
     // tree.find_all_entries( entries );
     AKTry::AKTNode* cur_state = tree.start();
     AKTry::Pattern pattern_found;
@@ -235,20 +235,24 @@ int main() {
             //     line_positions.pop_back();
             // }
             ++cur_line;
-            line_positions.push_back( AKTry::Entry( cur_line, cur_pos + 1 ) );
+            line_positions.push_back( AKTry::Entry( cur_line, cur_pos ) );
         } else { //word
             // std::cout << "newword\n";
             std::cin.unget();
             std::cin >> cur_word;
+            
             tree.forward( cur_state, cur_word, pattern_found );
+            if( pattern_found.found ) {
+                shift( line_positions, cur_pos - pattern_found.cur_solution->length + 1 );
+            }
             while( pattern_found.found ) {
-                unsigned position = cur_pos - pattern_found.cur_solution->length;
-                shift( line_positions, position );
+                unsigned position = cur_pos - pattern_found.cur_solution->length + 1;
+                
                 // unsigned line = line_positions.front().line;
                 entries[ pattern_found.cur_solution->number ].push_back(
-                    AKTry::Entry( line_positions.front().line, cur_pos - line_positions.front().position )
+                    AKTry::Entry( line_positions.front().line, position - line_positions.front().position )
                 );
-                tree.other_solution( cur_state, pattern_found );
+                tree.other_solution( pattern_found );
             }
             // if( pattern_found.switched ) {
             //     shift( line_positions, cur_pos - pattern_found.length );
