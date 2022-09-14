@@ -264,26 +264,35 @@ int main() {
     line_positions.push_back( AKTry::Entry( cur_line, cur_pos ) );
 
 
-    std::vector< unsigned > cur_positions( tree.patterns_count, 0 );
+    
     if( tree.only_jokers() ) {
-        unsigned left = tree.add_pos.front(),
-            right = line_positions.back().position - tree.add_pos.front() + 1 + 1;
+        unsigned left = 0,
+            right = line_positions.back().position - tree.add_pos.front() + 1;
         unsigned cur_on_line = 0;
-        unsigned next_line = 1;
-        if( line_positions.size() == 1 )
-            next_line = 0;
+        unsigned right_on_line = ( line_positions.begin() + 1 )->position - 
+            line_positions.begin()->position;
+        unsigned cur_line = 0;
+        /*if( line_positions.size() == 1 )
+            right_on_line = line_positions.front().position;
+       
+        else
+            right_on_line*/
         while( left < right ) {
-            if( line_positions[ next_line ].position - left > 0 ) {
-                std::cout << line_positions[ next_line - 1 ].line
+            if( cur_on_line < right_on_line ) {
+                std::cout << cur_line
                           << ',' << cur_on_line << '\n';
                 ++cur_on_line;
                 ++left;
             } else {
-                ++next_line;
+                ++cur_line;
+                right_on_line = line_positions[ cur_line + 1 ].position - 
+
+            line_positions[ cur_line ].position
                 cur_on_line = 0;
             }
         }
     } else {
+        std::vector< unsigned > cur_positions( tree.patterns_count, 0 );
         bool out_of_patterns = false, success = false;
         for( auto& entry : entries ) {
             if( entry.empty() ) {
@@ -292,7 +301,7 @@ int main() {
             }
         }
         while( !out_of_patterns ) {
-            if( tree.add_pos.front() > entries.front().front().position ) {
+            if( tree.add_pos.front() > entries.front().front().position error) {
                 entries.front().pop_front();
             } else {
                 break;
@@ -353,18 +362,20 @@ int main() {
     return 0;
 }
 
-void shift( std::vector< AKTry::Entry >& line_positions, unsigned position ) {
-    for( auto _ntry = line_positions.begin();; ) {
-        if( _entry->position == position ) {
-            line_positions.erase( line_positions.begin(), _entry );
-        } else if( _entry->position > position ) {
-#ifndef RELEASE_VERSION
-            if( _entry == line_positions.begin() ) exit( 1 );
-#endif
-            --_entry;
-            line_positions.erase( line_positions.begin(), _entry );
-        } else if( !( ++_entry < line_positions.end() ) ) {
-            line_positions.erase( line_positions.begin(), line_positions.end() - 1 );
+void shift( std::deque< AKTry::Entry >& line_positions, unsigned position ) {
+    
+    for( auto cur_iter = line_positions.begin();; ) {
+        if( line_positions.size() < 2 ) return;
+        int result = ( ++cur_iter )->position - position;
+        if( result < 0 ) {
+            line_positions.pop_front();
+        } else if( result == 0 ) {
+            line_positions.pop_front();
+
+            return;
+        } else {
+            return;
         }
+
     }
 }
