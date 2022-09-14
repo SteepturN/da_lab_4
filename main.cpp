@@ -354,7 +354,7 @@ int main() {
 }
 
 void shift( std::vector< AKTry::Entry >& line_positions, unsigned position ) {
-    for( auto _entry = line_positions.begin();; ) {
+    for( auto _ntry = line_positions.begin();; ) {
         if( _entry->position == position ) {
             line_positions.erase( line_positions.begin(), _entry );
         } else if( _entry->position > position ) {
