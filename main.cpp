@@ -45,6 +45,7 @@ class AKTry {
         void add( AKTNode* &cur_node, unsigned word, unsigned length );
         void pattern_found( AKTNode* p, unsigned number );
         void create_links();
+    
         AKTNode* first_node;
         // unsigned pattern_size;
 };
@@ -83,16 +84,16 @@ struct AKTry::Pattern {
 AKTry::AKTNode::AKTNode()
     : link( nullptr ), exit_link( nullptr ), number(), length( 0 ) {}
 AKTry::AKTry( std::string& _pattern )
-    : patterns_count( 0 ), first_node( new AKTNode ) {
+    : patterns_count( 0 ), first_jokers( 0 ), first_node( new AKTNode ) {
     std::istringstream pattern( std::move( _pattern ) );
     std::string word;
     AKTNode* cur_node = first_node;
     unsigned _add_pos = 0, cur_pattern_number = 0, length = 0;
 
     while( ( pattern >> word ) && ( word == "?" ) ) {
-        ++_add_pos;
+        ++first_jokers;
     }
-    first_jokers = _add_pos;
+    
     _add_pos = 0;
 
 
@@ -245,6 +246,7 @@ AKTry::Entry get_entry( unsigned left_boundary,
 int main() {
     std::string pattern_str;
     std::getline( std::cin, pattern_str, '\n' );
+    if( pattern_str.empty() ) return 0;
     AKTry tree( pattern_str );
 
 
@@ -258,13 +260,13 @@ int main() {
     AKTry::AKTNode* cur_state = tree.start();
     AKTry::Pattern pattern_found;
     unsigned cur_pos = 0, cur_word;
-    bool input_over = false;
+   
 
     while( cur_pos < first_jokers ){
         while( std::cin.get( ch ) && ( ch == ' ' ) );
         if( std::cin.eof() ) {
-            input_over = true;
-            break;
+            return 0;
+
         } else if( ch == '\n' ) {
             line_positions.push_back( cur_pos );
         } else { //word
@@ -274,7 +276,7 @@ int main() {
         }
     }
 
-    while( !input_over ) {
+    while( true ) {
         while( std::cin.get( ch ) && ( ch == ' ' ) );
         if( std::cin.eof() ) {
             break;
@@ -289,9 +291,10 @@ int main() {
 // 1 0 0 0 1 2 3 4 5
 // 0 1 2 3 4 5 6 7 8
             while( pattern_found.found ) {
-                for( auto i : pattern_found.cur_solution->number )
+                for( auto i : pattern_found.cur_solution->number ) {
                     entries[ i ].push_back(
                         cur_pos - pattern_found.cur_solution->length + 1 );
+                }
                 if( pattern_found.cur_solution->number.front() == 0 ) {
                     pattern_pos.push_back(
                         get_entry( pattern_pos.back().line, line_positions,
@@ -348,16 +351,16 @@ int main() {
             if( entries[ tree.patterns_count - 1 ].size() == 0 ) {
                 out_of_patterns = true;
             } else if( entries[ tree.patterns_count - 1 ].back() +
-                       tree.add_pos[ tree.patterns_count - 1 ]
-                       > line_positions.back() ) {
+                       tree.add_pos[ tree.patterns_count - 1 ] - 1
+                       >= line_positions.back() ) {
                 entries[ tree.patterns_count - 1 ].pop_back();
             } else {
                 break;
             }
         }
-        // 1 2 ? 3 ? ?
-        // 1 2 3 4 3 6 7
-        //
+        // 1 2 ? ? ?
+        // 1 2 3 4
+        // 0 1 2 3 4
         if( tree.patterns_count == 1 ) {
             // в конце не удалены позиции, которые не являются правильными из-за
             // последних джокеров
@@ -407,9 +410,10 @@ int main() {
 int result_f( const std::vector< std::vector< unsigned > >& entries,
               unsigned pattern_num, std::vector< unsigned >& cur_positions,
               AKTry& tree ){
-    return entries[ pattern_num ][ cur_positions[ pattern_num ] ]
-        - ( entries[ pattern_num + 1 ][ cur_positions[ pattern_num + 1 ] ]
-            + tree.add_pos[ pattern_num + 1 ] );
+    return entries[ pattern_num ][ cur_positions[ pattern_num ] ] +
+           tree.add_pos[ pattern_num ]
+        -  entries[ pattern_num + 1 ][ cur_positions[ pattern_num + 1 ] ]
+            ;
 }
 // 1 2 3 ? ? ?
 // 0 0 0 1 2 3 4 5 6
@@ -424,18 +428,27 @@ AKTry::Entry get_entry( unsigned left_edge,
         comparison = position - line_pos[ middle ];
         if( comparison != 0 ) {
             if( comparison > 0 ) {
+                if( ( middle == line_pos.size() - 1 )
+
+                    || ( position < line_pos[ middle + 1 ] ) ) {
+
+                    find_this.line = middle;
+
+                    break;
+
+                }
                 left_edge = middle + 1;
             } else if( comparison < 0 ) {
-                if( ( middle == line_pos.size() - 1 )
-                    || ( position > line_pos[ middle + 1 ] ) ) {
+                if( ( middle == 0 )
+                    || ( position > line_pos[ --middle ] ) ) {
                     find_this.line = middle;
                     break;
                 }
-                right_edge = middle - 1;
+                right_edge = middle;
             }
         } else {
-            find_this = AKTry::Entry( middle, 0 );
-            return find_this;
+            find_this.line = middle;
+            break;
         }
     }
     find_this.position = position - line_pos[ find_this.line ];
