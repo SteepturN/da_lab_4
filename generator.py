@@ -13,13 +13,14 @@ if __name__ == "__main__":
         sys.exit(1)
 
     count_of_tests = int( sys.argv[2] )
+    random.seed()
     with open( sys.argv[ 1 ], 'w' ) as output_file:
         for _ in range( random.randrange( 0, count_of_tests, 1 ) ):
             word = "{0}".format( random.randint(0, 2**32 - 1) )\
                 if not random.choice( [ True, False ] ) else "?"
             output_file.write( "{0} ".format( word ) )
         output_file.write( "\n" )
-        for _ in range( random.randrange( 0, 2**count_of_tests, 1 ) ):
+        for _ in range( random.randrange( 0, count_of_tests ** 2, 1 ) ):
             word = "{0}".format( random.randint(0, 2**32 - 1) )\
                 if not random.choice( [ True, False ] ) else "\n"
             output_file.write( "{0} ".format( word ) )
