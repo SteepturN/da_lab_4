@@ -24,15 +24,15 @@ main() {
         mkdir ./gen_tests
     fi
     while true ; do
-        if ! ./generator.py "${test_file}" "100000"; then
+        if ! ./generator.py "${test_file}" "10000"; then
             log_error "Failed to run test ${test_file}"
             return 1
         fi
-        if ! ./main < "${test_file}" > "${answer_main}" ; then
+        if ! ./main.bin < "${test_file}" > "${answer_main}" ; then
             log_error "Failed to run test ${test_file}"
             return 1
         fi
-        if ! ./easy < "${test_file}" > "${answer_easy}" ; then
+        if ! ./easy.bin < "${test_file}" > "${answer_easy}" ; then
             log_error "Failed to run test ${test_file}"
             return 1
         fi
