@@ -22,9 +22,8 @@ if __name__ == "__main__":
             if not random.choice( [ True, False ] ):
                 el = ""
                 for _ in range( random.randint( 0, 3 ) ):
-                    el += "{0}".format( random.randint(0, 9) )
-                random_num = random.randint( 0, 2**5 )
-                elements.append( el.zfill( random_num ) )
+                    el += "{0}".format( random.randint(0, 9) ).zfill( 100 )
+                elements.append( el )
             else:
                 el = "? "
             for _ in range( random.randint( 0, 2**6 - 1 ) ):
@@ -38,13 +37,13 @@ if __name__ == "__main__":
                                      if not len( elements ) == 0 \
                                      else random.randint( 0, 10 ) )
                 random_num = random.randint( 0, 2**5 )
-                word = word.zfill( random_num )
+                word = word.rjust( random_num )
             elif action == "random":
                 word = ""
                 for _ in range( random.randint( 0, 3 ) ):
                     word += "{0}".format( random.randint(0, 9) )
                 random_num = random.randint( 0, 2**5 )
-                word = word.zfill( random_num )
+                word = word.rjust( random_num )
             for _ in range( random.randint( 0, 2**5 ) ):
                 word += " "
             for _ in range( random.randint( 0, 2**5 ) ):
