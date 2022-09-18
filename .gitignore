@@ -1,3 +1,2 @@
-/dict_tests/*
-mytests
-tests
+**/*tests*
+**/*tmp*

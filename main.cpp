@@ -11,6 +11,9 @@
 #include <sstream>
 #define RELEASE_VERSION
 
+using WordType = unsigned;
+using PositionType = unsigned long;
+using CountType = unsigned;
 // можно хранить энтри линий, находя нужную линию просто взяв первый энтри,
 // оттуда линию и потом прибавить нужное количество
 //
@@ -25,22 +28,22 @@ class AKTry {
         struct Entry;
 
 
-        unsigned patterns_count;
-        unsigned first_jokers;
-        std::vector< unsigned > add_pos;
+        CountType patterns_count;
+        CountType first_jokers;
+        std::vector< PositionType > add_pos;
 
         AKTry( std::string& );
         void find_all_entries( std::vector< std::vector< AKTry::Entry > >& );
-        void forward( AKTNode*& cur_state, unsigned cur_word, Pattern& pattern );
+        void forward( AKTNode*& cur_state, WordType cur_word, Pattern& pattern );
         AKTNode* start();
         void other_solution( Pattern& );
         bool only_jokers();
 
         void _print();
-        void print( AKTNode*, int, unsigned );
+        void print( AKTNode*, int, WordType );
     private:
-        void add( AKTNode* &cur_node, unsigned word, unsigned length );
-        void pattern_found( AKTNode* p, unsigned number );
+        void add( AKTNode* &cur_node, WordType word, PositionType length );
+        void pattern_found( AKTNode* p, CountType number );
         void create_links();
 
         AKTNode* first_node;
@@ -48,19 +51,19 @@ class AKTry {
 };
 // 0 ... 2 ^ 32 - 1
 struct AKTry::AKTNode {
-    std::map< unsigned, AKTry::AKTNode* > next;
+    std::map< WordType, AKTry::AKTNode* > next;
     AKTNode* link;
     AKTNode* exit_link;
-    std::vector< unsigned > number;
-    unsigned length;
+    std::vector< CountType > number;
+    PositionType length;
     AKTNode();
 };
 struct AKTry::Entry {
-    Entry( unsigned, unsigned );
-    unsigned line;
-    unsigned position;
+    Entry( PositionType, PositionType );
+    PositionType line;
+    PositionType position;
 };
-AKTry::Entry::Entry( unsigned line, unsigned position )
+AKTry::Entry::Entry( PositionType line, PositionType position )
     : line( line ), position( position ) {}
 // struct AKTry::State {
 //     State( AKTNode* s )
@@ -85,8 +88,8 @@ AKTry::AKTry( std::string& _pattern )
     std::istringstream pattern( std::move( _pattern ) );
     std::string word;
     AKTNode* cur_node = first_node;
-    unsigned _add_pos = 0, cur_pattern_number = 0, length = 0;
-
+    PositionType _add_pos = 0, length = 0;
+    CountType cur_pattern_number = 0;
     while( ( pattern >> word ) && ( word == "?" ) ) {
         ++first_jokers;
     }
@@ -94,7 +97,7 @@ AKTry::AKTry( std::string& _pattern )
 
     if( pattern ) {
         ++_add_pos;
-        add( cur_node, static_cast< unsigned >( std::stoul( word ) ), ++length );
+        add( cur_node, static_cast< WordType >( std::stoul( word ) ), ++length );
         while( pattern >> word ) {
             if( word == "?" ) {
                 // joker_pos.push_back( i );
@@ -108,7 +111,7 @@ AKTry::AKTry( std::string& _pattern )
                     add_pos.push_back( _add_pos ); // add this new pattern
                     _add_pos = 0;
                 }
-                add( cur_node, static_cast< unsigned >( std::stoul( word ) ), ++length );
+                add( cur_node, static_cast< WordType >( std::stoul( word ) ), ++length );
             }
             ++_add_pos;
         }
@@ -132,8 +135,8 @@ void AKTry::create_links() {
     struct Links {
         AKTNode* parent;
         AKTNode* child;
-        unsigned word;
-        Links( AKTNode* p, AKTNode* c, unsigned w )
+        WordType word;
+        Links( AKTNode* p, AKTNode* c, WordType w )
             : parent( p ), child( c ), word( w ) {}
     };
     std::queue< Links > queue;
@@ -179,10 +182,10 @@ void AKTry::create_links() {
     // при поиске я буду должен просто идти по ссылкам выхода и забирать все готовые паттерны,
     // пока не дойду до ссылки выхода, равной нуллпоинтеру
 }
-void AKTry::pattern_found( AKTNode* p, unsigned number ) {
+void AKTry::pattern_found( AKTNode* p, CountType number ) {
     p->number.push_back( number );
 }
-void AKTry::add( AKTNode *&cur_node, unsigned word, unsigned _length ) {
+void AKTry::add( AKTNode *&cur_node, WordType word, PositionType _length ) {
     if( /* cur_node->next.empty() || */ !cur_node->next.contains( word ) ) {
         cur_node = cur_node->next[ word ] = new AKTNode;
         cur_node->length = _length;
@@ -193,7 +196,7 @@ void AKTry::add( AKTNode *&cur_node, unsigned word, unsigned _length ) {
 AKTry::AKTNode* AKTry::start() {
     return first_node;
 }
-void AKTry::forward( AKTNode*& cur_state, unsigned cur_word, Pattern& pattern ) {
+void AKTry::forward( AKTNode*& cur_state, WordType cur_word, Pattern& pattern ) {
     while( true ) {
         if( cur_state->next.contains( cur_word ) ) {
             cur_state = cur_state->next[ cur_word ];
@@ -230,7 +233,7 @@ void AKTry::_print() {
         print( next->second, 0, next->first );
     }
 }
-void AKTry::print( AKTNode* node, int height, unsigned word ) {
+void AKTry::print( AKTNode* node, int height, WordType word ) {
     if( node == nullptr ) return;
     int i = 0;
     while( i++ < height ) {
@@ -248,14 +251,14 @@ void AKTry::print( AKTNode* node, int height, unsigned word ) {
     }
 }
 
-void shift( std::vector< AKTry::Entry >& line_positions, unsigned position );
-int result_f( const std::vector< std::vector< unsigned > >& entries,
-            unsigned pattern_num, std::vector< unsigned >& cur_positions,
+void shift( std::vector< AKTry::Entry >& line_positions, PositionType position );
+int result_f( const std::vector< std::vector< PositionType > >& entries,
+            CountType pattern_num, std::vector< PositionType >& cur_positions,
             AKTry& tree );
 
-AKTry::Entry get_entry( unsigned left_boundary,
-                        const std::vector< unsigned >& line_pos,
-                        unsigned position );
+AKTry::Entry get_entry( PositionType left_boundary,
+                        const std::vector< PositionType >& line_pos,
+                        PositionType position );
 int main() {
 
     std::cin.tie( 0 );
@@ -271,15 +274,16 @@ int main() {
 
 
     char ch = EOF;
-    unsigned first_jokers = tree.first_jokers;
-    std::vector< std::vector< unsigned > > entries( tree.patterns_count );
+    CountType first_jokers = tree.first_jokers;
+    std::vector< std::vector< PositionType > > entries( tree.patterns_count );
     std::vector< AKTry::Entry > pattern_pos( 1, AKTry::Entry( 0, 0 ) );
                                              // just for easy algorithm
-    std::vector< unsigned > line_positions( 1, 0 );
+    std::vector< PositionType > line_positions( 1, 0 );
         // last_jokers;
     AKTry::AKTNode* cur_state = tree.start();
     AKTry::Pattern pattern_found;
-    unsigned cur_pos = 0, cur_word;
+    PositionType cur_pos = 0;
+    WordType cur_word;
    
 
     while( cur_pos < first_jokers ) {
@@ -334,14 +338,14 @@ int main() {
 
     // 0 в pattern_pos не использовать
     if( tree.only_jokers() ) {
-        unsigned left = 0,
+        PositionType left = 0,
             right = line_positions.back() - first_jokers + 1;
 // ? ? ?
 // 0 1 2 3 4 5 _ ( последний элемент line_positions указывает на элемент за последним )
-        unsigned cur_on_line = 0;
-        unsigned right_on_line = *( line_positions.begin() + 1 ) -
+        PositionType cur_on_line = 0;
+        PositionType right_on_line = *( line_positions.begin() + 1 ) -
             *line_positions.begin();
-        unsigned cur_line = 0;
+        PositionType cur_line = 0;
         while( left < right ) {
             if( cur_on_line < right_on_line ) {
                 std::cout << cur_line + 1
@@ -358,7 +362,7 @@ int main() {
         }
     } else {
         pattern_pos.erase( pattern_pos.begin() ); //for algorithm
-        std::vector< unsigned > cur_positions( tree.patterns_count, 0 );
+        std::vector< PositionType > cur_positions( tree.patterns_count, 0 );
         bool out_of_patterns = false, success = false;
         if( entries.empty() ) {
             out_of_patterns = true;
@@ -387,7 +391,7 @@ int main() {
         if( tree.patterns_count == 1 ) {
             // в конце не удалены позиции, которые не являются правильными из-за
             // последних джокеров
-            for( unsigned i = 0; i < entries[ 0 ].size(); ++i ) {
+            for( PositionType i = 0; i < entries[ 0 ].size(); ++i ) {
                  std::cout << pattern_pos[ i ].line + 1
                            << ',' << ' ' << pattern_pos[ i ].position + 1 << '\n';
             }
@@ -395,7 +399,7 @@ int main() {
         }
         while( !out_of_patterns ) { // error somewhere here
             success = true;
-            for( unsigned pattern_num = 0; pattern_num < tree.patterns_count - 1; ) {
+            for( CountType pattern_num = 0; pattern_num < tree.patterns_count - 1; ) {
                 int result = result_f( entries, pattern_num, cur_positions, tree );
                 if( result > 0 ) { // right is fewer than it should be, I should shift right
                     while( ( ++cur_positions[ pattern_num + 1 ] < entries[ pattern_num + 1 ].size() ) &&
@@ -430,8 +434,8 @@ int main() {
     }
     return 0;
 }
-int result_f( const std::vector< std::vector< unsigned > >& entries,
-              unsigned pattern_num, std::vector< unsigned >& cur_positions,
+int result_f( const std::vector< std::vector< PositionType > >& entries,
+              CountType pattern_num, std::vector< PositionType >& cur_positions,
               AKTry& tree ){
     return entries[ pattern_num ][ cur_positions[ pattern_num ] ] +
            tree.add_pos[ pattern_num ]
@@ -440,11 +444,11 @@ int result_f( const std::vector< std::vector< unsigned > >& entries,
 }
 // 1 2 3 ? ? ?
 // 0 0 0 1 2 3 4 5 6
-AKTry::Entry get_entry( unsigned first_left_edge,
-                        const std::vector< unsigned >& line_pos,
-                        unsigned position ) {
-    unsigned left_edge = first_left_edge;
-    unsigned right_edge = line_pos.size() - 1, middle;
+AKTry::Entry get_entry( PositionType first_left_edge,
+                        const std::vector< PositionType >& line_pos,
+                        PositionType position ) {
+    PositionType left_edge = first_left_edge;
+    PositionType right_edge = line_pos.size() - 1, middle;
     int comparison;
     AKTry::Entry find_this( 0, 0 );
     while( true ) {
@@ -482,7 +486,7 @@ AKTry::Entry get_entry( unsigned first_left_edge,
     // 5 - 4 = 1
     return find_this;
 }
-void shift( std::deque< AKTry::Entry >& line_positions, unsigned position ) {
+void shift( std::deque< AKTry::Entry >& line_positions, PositionType position ) {
     
     for( auto cur_iter = line_positions.begin();; ) {
         if( line_positions.size() < 2 ) return;
