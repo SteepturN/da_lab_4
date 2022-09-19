@@ -33,12 +33,12 @@ if __name__ == "__main__":
                     if prev_action == "?":
                         first_line += " "
                     elif number_size == 9:
+                        prev_action = action
                         continue
                     number = random.randint(0, 9)
                     first_line += "{0}".format( number )
                     if not( ( number_size == 0 ) and ( number == 0 ) ):
                         number_size += 1
-
                 elif action == "newline":
                     number_size = 0
                     first_line += "\n"
