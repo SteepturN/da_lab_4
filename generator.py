@@ -26,7 +26,7 @@ if __name__ == "__main__":
     with open( sys.argv[ 1 ], 'w' ) as output_file:
         for _ in range( random.randint( 0, 10000 ) ):
             prev_action = action
-            action = random.choice( variants )
+            action = random.choice( pattern_variants )
             if action == "space":
                 number_size = 0
                 first_line += " "
