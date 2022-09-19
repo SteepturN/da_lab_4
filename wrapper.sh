@@ -20,6 +20,7 @@ main() {
     answer_main=./gen_tests/main_ans
     answer_easy=./gen_tests/easy_ans
     test_count=1
+
     if [[ ! -d "./gen_tests" ]]; then
         mkdir ./gen_tests
     fi

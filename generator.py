@@ -24,7 +24,7 @@ if __name__ == "__main__":
     abc = 0
     random.seed()
     with open( sys.argv[ 1 ], 'w' ) as output_file:
-        for _ in range( random.randint( 0, 10000 ) ):
+        while action != "newline":
             prev_action = action
             action = random.choice( pattern_variants )
             if action == "space":
