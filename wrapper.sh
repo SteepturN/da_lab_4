@@ -35,7 +35,7 @@ main() {
         # echo -n " test generated -- "
 
         # if ! /usr/bin/time -f "%S" -o .tmp_gen ./main.bin < "${test_file}" > "${answer_main}" ; then
-        if ! ./main.bin < "${test_file}" > "${answer_main}" ; then
+        if ! valgrind -q ./main.bin < "${test_file}" > "${answer_main}" ; then
             log_error "Failed to run test ${test_file}"
             return 1
         fi

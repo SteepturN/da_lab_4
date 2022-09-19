@@ -33,6 +33,7 @@ class AKTry {
         std::vector< PositionType > add_pos;
 
         AKTry( std::string& );
+        ~AKTry();
         void find_all_entries( std::vector< std::vector< AKTry::Entry > >& );
         void forward( AKTNode*& cur_state, WordType cur_word, Pattern& pattern );
         AKTNode* start();
@@ -99,35 +100,36 @@ AKTry::AKTry( std::string& _pattern )
         ++first_jokers;
     }
 // 1 ? ? ?
-
-    if( pattern ) {
-        ++_add_pos;
-        add( cur_node, static_cast< WordType >( std::stoul( word ) ), ++length );
-        while( pattern >> word ) {
-            if( word == "?" ) {
-                // joker_pos.push_back( i );
-                if( cur_node != first_node ) {
-                    pattern_found( cur_node, cur_pattern_number++ ); // add pattern_number here
-                    cur_node = first_node;
-                    length = 0;
-                }
-            } else {
-                if( cur_node == first_node ) {
-                    add_pos.push_back( _add_pos ); // add this new pattern
-                    _add_pos = 0;
-                }
-                add( cur_node, static_cast< WordType >( std::stoul( word ) ), ++length );
-            }
-            ++_add_pos;
-        }
-        add_pos.push_back( _add_pos );
-        if( word != "?" ) {
-            pattern_found( cur_node, cur_pattern_number++ ); // add pattern_number here
-        }
-        create_links();
+    if( !pattern ) {
+        return;
     }
+    ++_add_pos;
+    add( cur_node, static_cast< WordType >( std::stoul( word ) ), ++length );
+    while( pattern >> word ) {
+        if( word == "?" ) {
+            // joker_pos.push_back( i );
+            if( cur_node != first_node ) {
+                pattern_found( cur_node, cur_pattern_number++ ); // add pattern_number here
+                cur_node = first_node;
+                length = 0;
+            }
+        } else {
+            if( cur_node == first_node ) {
+                add_pos.push_back( _add_pos ); // add this new pattern
+                _add_pos = 0;
+            }
+            add( cur_node, static_cast< WordType >( std::stoul( word ) ), ++length );
+        }
+        ++_add_pos;
+    }
+    add_pos.push_back( _add_pos );
+    if( word != "?" ) {
+        pattern_found( cur_node, cur_pattern_number++ ); // add pattern_number here
+    }
+    create_links();
     patterns_count = cur_pattern_number;
 }
+
 void AKTry::create_links() {
     struct Links {
         AKTNode* parent;
@@ -226,7 +228,19 @@ void AKTry::other_solution( Pattern& pattern ) {
 bool AKTry::only_jokers() {
     return ( first_jokers != 0 ) && ( add_pos.size() == 0 ) && ( patterns_count == 0 );
 }
-
+AKTry::~AKTry() {
+    if( first_node == nullptr ) return;
+    std::queue< AKTNode* > q;
+    q.push( first_node );
+    while( !q.empty() ){
+        auto cur_node = q.front();
+        q.pop();
+        for( auto node : cur_node->next ) {
+            q.push( node.second );
+        }
+        delete cur_node;
+    }
+}
 void AKTry::_print() {
     if( first_node == nullptr ) return;
     for( auto next = first_node->next.begin(); next != first_node->next.end(); ++next ) {
