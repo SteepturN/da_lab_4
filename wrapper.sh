@@ -24,30 +24,45 @@ main() {
         mkdir ./gen_tests
     fi
     while true ; do
-        if ! ./generator.py "${test_file}" "20"; then
+        # printf "[ %d ]: " "${test_count}"
+
+        if ! ./generator.py "${test_file}" "10"; then
             log_error "Failed to run test ${test_file}"
             return 1
         fi
+
+        # echo -n " test generated -- "
+
+        # if ! /usr/bin/time -f "%S" -o .tmp_gen ./main.bin < "${test_file}" > "${answer_main}" ; then
         if ! ./main.bin < "${test_file}" > "${answer_main}" ; then
             log_error "Failed to run test ${test_file}"
             return 1
         fi
+
+        # echo -n "main: "
+        # wc -l "${answer_main}" | sed -z 's/\([[:digit:]]\+\) .*\n/\1/'
+
         if ! ./easy.bin < "${test_file}" > "${answer_easy}" ; then
             log_error "Failed to run test ${test_file}"
             return 1
         fi
-        # printf "[ %d ]: " "${test_count}"
-        # echo -n "main: "
-        # wc -l "${answer_main}" | sed -z 's/\([[:digit:]]\+\) .*\n/\1/'
+
         # printf "\teasy: "
         # wc -l "${answer_easy}" | sed -z 's/\([[:digit:]]\+\) .*\n/\1/'
         # printf "\t"
+
         if ! diff -q "${answer_main}" "${answer_easy}" ; then
             log_error "Failed to check test ${test_file}."
             return 1
         fi
         # log_info "${test_file}: OK"
+        # echo
         (( ++test_count ))
+
+        # clear
+        # if [[ -e ${test_count} 2 ]]; then
+        #     printf ""
+        # fi
     done
 }
 main "$@"
