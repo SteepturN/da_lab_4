@@ -290,6 +290,9 @@ int main() {
         while( std::cin.get( ch ) && ( ch == ' ' ) );
         if( std::cin.eof() ) {
             return 0;
+        } else if ( !std::cin ) {
+            std::cerr << "error reading\n";
+            exit( 1 );
         } else if( ch == '\n' ) {
             line_positions.push_back( cur_pos );
         } else { //word
@@ -303,6 +306,9 @@ int main() {
         while( std::cin.get( ch ) && ( ch == ' ' ) );
         if( std::cin.eof() ) {
             break;
+        } else if ( !std::cin ) {
+            std::cerr << "error reading\n";
+            exit( 1 );
         } else if( ch == '\n' ) {
             line_positions.push_back( cur_pos );
         } else { //word
